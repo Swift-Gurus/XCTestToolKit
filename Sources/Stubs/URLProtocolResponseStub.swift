@@ -8,7 +8,7 @@ public struct URLProtocolResponseStub {
     public var delayInSec: Int = 0
 
     public init(data: Data? = nil,
-                status: Int,
+                status: Int = 200,
                 error: Error? = nil,
                 url: String? = nil,
                 delayInSec: Int = 0) {
