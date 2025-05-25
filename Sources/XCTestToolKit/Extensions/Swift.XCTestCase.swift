@@ -157,6 +157,7 @@ public extension XCTestCase {
     /// Sleep using expectation inside
     /// - Parameter timeIntervalSeconds: Sleep interval using seconds
     /// - Note: It's rare occasion that we need it
+    @available(macOS 13.0, *)
     @available(iOS 16.0, *)
     func sleepAsync<C>(for duration: C.Instant.Duration,
                        tolerance: C.Instant.Duration? = nil,
