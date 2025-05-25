@@ -1,4 +1,5 @@
 import Foundation
+#if canImport(UIKit)
 import UIKit
 
 public extension NotificationCenter {
@@ -19,3 +20,5 @@ public extension NotificationCenter {
         postNotification(name: UIApplication.willResignActiveNotification)
     }
 }
+
+#endif

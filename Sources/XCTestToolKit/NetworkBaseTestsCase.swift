@@ -1,8 +1,8 @@
 import Foundation
 import XCTest
- #if canImport(FoundationNetworking)
+#if canImport(FoundationNetworking)
  import FoundationNetworking
- #endif
+#endif
 
 @MainActor
 open class NetworkBaseTestsCase: MultiThreadXCTestCase {
