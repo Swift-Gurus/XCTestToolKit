@@ -10,7 +10,7 @@ import Foundation
 ///
 /// Designed to work with `SessionConfigurationStorageMock` and `AsyncConfirmation`.
 @available(macOS 13.0, *)
-final class NetworkObserver {
+public final class NetworkTestMonitor {
 
     /// Returns the URLs for the cache directories in the user's domain.
     var cacheFolderURLs: [URL] {
@@ -68,6 +68,8 @@ final class NetworkObserver {
             try await allSecondaryRequests.compactMap { $0.url }
         }
     }
+    
+    public init() {}
 
     /// Adds expected stubs for the primary session.
     public func addStubs(_ stubs: [URLProtocolResponseStub]) {

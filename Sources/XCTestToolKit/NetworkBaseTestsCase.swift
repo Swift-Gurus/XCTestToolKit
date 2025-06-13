@@ -7,7 +7,7 @@ import XCTest
 @available(macOS 13.0, *)
 @MainActor
 open class NetworkBaseTestsCase: MultiThreadXCTestCase {
-    private var networkObserver = NetworkObserver()
+    private var networkObserver = NetworkTestMonitor()
     public var successCode: [Int] = []
     open var cacheFolderURLs: [URL] {
         networkObserver.cacheFolderURLs
