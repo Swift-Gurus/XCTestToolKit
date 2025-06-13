@@ -3,51 +3,50 @@ import Foundation
 import FoundationNetworking
 #endif
 
-@MainActor
+@available(macOS 13.0, *)
 open class URLProtocolStubBase: URLProtocolStubAbstract, @unchecked Sendable {
     static let queue = DispatchQueue(label: "URLProtocolStub.queue")
-    
+
     open class var storage: URLProtocolStubActor {
         fatalError("Subclasses must implement")
     }
-    open class var requestDidFinishObserver: (URLRequest) async -> Void {
+    open class var requestDidFinishObserver: (URLRequest) -> Void {
         get { fatalError("Subclasses must implement") }
         set { fatalError("Subclasses must implement") }
-        
+
     }
     var defaultURLToCrashTests: URL {
         URL(fileURLWithPath: "it will crash the tests deliberately")
     }
-    
-    
-    open class func clearRequests() async {
-        await updateResponseStubs([])
-        await updateReceivedRequests([])
+
+    open class func clearRequests() {
+        updateResponseStubs([])
+        updateReceivedRequests([])
     }
-    
-    open class func clear() async {
-        await clearRequests()
+
+    open class func clear() {
+        clearRequests()
         requestDidFinishObserver = { _ in }
     }
 
-    class func updateReceivedRequests(_ requests: [URLRequest]) async {
-        await Self.storage.updateReceivedRequests(requests)
+    class func updateReceivedRequests(_ requests: [URLRequest]) {
+        Self.storage.updateReceivedRequests(requests)
     }
 
     class func allResponseStubs() async -> [URLProtocolResponseStub] {
-        await Self.storage.allResponseStubs()
+        Self.storage.allResponseStubs()
     }
 
-    class func updateResponseStubs(_ stubs: [URLProtocolResponseStub]) async {
-        await Self.storage.updateResponseStubs(stubs)
+    class func updateResponseStubs(_ stubs: [URLProtocolResponseStub]) {
+        Self.storage.updateResponseStubs(stubs)
     }
 
-    public static func addExpectedStub(_ stub: URLProtocolResponseStub) async {
-        await storage.updateResponseStubs(storage.allResponseStubs() + [stub])
+    public static func addExpectedStub(_ stub: URLProtocolResponseStub) {
+        storage.updateResponseStubs(storage.allResponseStubs() + [stub])
     }
 
-    func nextStub(for request: URLRequest) async -> URLProtocolResponseStub? {
-        await Self.nextStub(for: request)
+    func nextStub(for request: URLRequest) -> URLProtocolResponseStub? {
+        Self.nextStub(for: request)
     }
 
     override open func startLoading() {
@@ -63,28 +62,29 @@ open class URLProtocolStubBase: URLProtocolStubAbstract, @unchecked Sendable {
 }
 
 // swiftlint:disable no_grouping_extension
+@available(macOS 13.0, *)
 extension URLProtocolStubBase {
-    private static var _currentRequest: URLRequest?
+    @Locked private static var request: URLRequest?
 
     private static var currentRequest: URLRequest? {
-        get { queue.sync { _currentRequest } }
-        set { queue.sync { _currentRequest = newValue } }
+        get { request }
+        set { _request.mutate { _ in newValue } }
     }
 
     private var currentRequest: URLRequest? {
         Self.currentRequest
     }
 
-    static func nextStub(for request: URLRequest) async -> URLProtocolResponseStub? {
-        await Self.storage.nextStub(for: request)
+    static func nextStub(for request: URLRequest) -> URLProtocolResponseStub? {
+        Self.storage.nextStub(for: request)
     }
 
     static func requests() async -> [URLRequest] {
-        await Self.storage.receivedRequests()
+        Self.storage.receivedRequests()
     }
 
-    private func appendRequest(_ urlRequest: URLRequest) async {
-       await Self.storage.appendRequest(request)
+    private func appendRequest(_ urlRequest: URLRequest) {
+        Self.storage.appendRequest(request)
     }
 
     private func urlResponse(for stub: URLProtocolResponseStub?, request: URLRequest) -> HTTPURLResponse? {
@@ -97,19 +97,17 @@ extension URLProtocolStubBase {
     private func emulateLoad() async {
         let currentRequest = request
 
-        await appendRequest(currentRequest)
+        appendRequest(currentRequest)
         beforeResponse()
 
-        let stub = await nextStub(for: currentRequest)
-        
+        let stub = nextStub(for: currentRequest)
+
         if let delayInSec = stub?.delayInSec,
            delayInSec > 0 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(delayInSec)) {[weak self] in
-                self?.performStart(using: stub, for: currentRequest)
-            }
-        } else {
-            performStart(using: stub, for: currentRequest)
+            try? await Task.sleep(for: .seconds(delayInSec))
         }
+
+        performStart(using: stub, for: currentRequest)
     }
 
     private func performStart(using stub: URLProtocolResponseStub?,
@@ -118,7 +116,7 @@ extension URLProtocolStubBase {
            hang == true {
             return
         }
-        
+
         if let expectedData = stub?.data {
             client?.urlProtocol(self, didLoad: expectedData)
         }
@@ -129,13 +127,12 @@ extension URLProtocolStubBase {
             fatalError("Should always have a response")
         }
 
-        
         if let expectedError = stub?.error {
             client?.urlProtocol(self, didFailWithError: expectedError)
         } else {
             client?.urlProtocolDidFinishLoading(self)
         }
-        Task { await Self.requestDidFinishObserver(currentRequest) }
-       
+        Self.requestDidFinishObserver(currentRequest)
+
     }
 }

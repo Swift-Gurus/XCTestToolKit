@@ -4,6 +4,9 @@ import FoundationNetworking
 #endif
 
 open class URLProtocolStubAbstract: URLProtocol {
+    public override init(request: URLRequest, cachedResponse: CachedURLResponse?, client: (any URLProtocolClient)?) {
+        super.init(request: request, cachedResponse: cachedResponse, client: client)
+    }
     override open class func canInit(with request: URLRequest) -> Bool {
         true
     }
@@ -12,7 +15,7 @@ open class URLProtocolStubAbstract: URLProtocol {
         request
     }
 
-    override open class func requestIsCacheEquivalent(_ a: URLRequest, to b: URLRequest) -> Bool {
+    override open class func requestIsCacheEquivalent(_ requestA: URLRequest, to requestB: URLRequest) -> Bool {
         false
     }
 }

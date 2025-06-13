@@ -5,10 +5,12 @@ public typealias ConfirmationOperation<R> = (Confirmable) async throws -> sendin
 /// A runner that performs an asynchronous confirmation-based test.
 ///
 /// `AsyncConfirmationTestRunner` is designed for validating that an asynchronous operation
-/// triggers a specific number of confirmations (signals) within a given timeout, suitable for Swift tests, XCTest, QuickSpec
+/// triggers a specific number of confirmations (signals) within a given timeout,
+/// suitable for Swift tests, XCTest, QuickSpec
 ///
 /// - Important:
-/// Apple's native `confirmation(expectedCount:perform:)` API does not properly await asynchronous operations inside the `perform` closure.
+/// Apple's native `confirmation(expectedCount:perform:)` API does not properly await asynchronous operations
+/// inside the `perform` closure.
 /// As a result, if confirmation depends on awaited work (e.g., delayed task completion), the test may incorrectly fail.
 ///
 /// `AsyncConfirmationTestRunner` ensures the `operation` closure is fully awaited before verifying confirmations,
@@ -69,7 +71,7 @@ public struct AsyncConfirmationTestRunner<R: Sendable> {
         self.name = name
         self.sourceLocation = sourceLocation
     }
-    
+
     /// Performs the confirmation test.
        ///
        /// - Parameters:
@@ -77,8 +79,6 @@ public struct AsyncConfirmationTestRunner<R: Sendable> {
        ///   - operation: The asynchronous operation that should trigger the confirmations.
        /// - Throws: Rethrows any errors thrown by the operation, or a timeout error if confirmations are not fulfilled.
     public func perform(operation: @escaping ConfirmationOperation<R>) async throws -> R {
-        @Locked
-        var state: ConfirmationResultBox<R> = .init()
         let confirmation = AsyncConfirmation(expectedCount: expectedCount, name: name)
         let waiter = AsyncConfirmationsWaiter(duration: timeout, confirmations: [confirmation])
         async let result = operation(confirmation)
@@ -92,8 +92,7 @@ enum RunnerError: Error {
     case noResultNoConfirmation
     case noResult
     case timeoutWaitingForConfirmation
-    
-    
+
 }
 
 /// A convenient function for writing confirmation-based async tests.
@@ -111,6 +110,7 @@ enum RunnerError: Error {
 /// This function provides better reliability than Apple's `confirmation {}` when the operation
 /// internally dispatches detached asynchronous work that is not directly awaited.
 @available(macOS 13.0, *)
+@discardableResult
 public func asyncConfirmation<R>(
     expectedCount: Int = 1,
     name: String = "",
