@@ -3,14 +3,14 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public actor URLProtocolStubActor {
-    private var requests: [URLRequest] = []
-    private var stubs: [URLProtocolResponseStub] = []
+public final class URLProtocolStubActor {
+    @Locked private var requests: [URLRequest] = []
+    @Locked private var stubs: [URLProtocolResponseStub] = []
 
-    public init(){}
-    
+    public init() {}
+
     func appendRequest(_ urlRequest: URLRequest) {
-        requests = requests.appended(urlRequest)
+        _requests.mutate { $0.appended(urlRequest) }
     }
 
     func receivedRequests() -> [URLRequest] {
@@ -18,7 +18,7 @@ public actor URLProtocolStubActor {
     }
 
     func updateReceivedRequests(_ requests: [URLRequest]) {
-        self.requests = requests
+        _requests.mutate { _ in requests }
     }
 
     func allResponseStubs() -> [URLProtocolResponseStub] {
@@ -26,7 +26,7 @@ public actor URLProtocolStubActor {
     }
 
     func updateResponseStubs(_ stubs: [URLProtocolResponseStub]) {
-        self.stubs = stubs
+        _stubs.mutate { _ in stubs }
     }
 
     func nextStub(for request: URLRequest) -> URLProtocolResponseStub? {

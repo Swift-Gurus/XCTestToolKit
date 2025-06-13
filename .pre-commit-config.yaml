@@ -1,0 +1,29 @@
+default_install_hook_types: [pre-commit, prepare-commit-msg, commit-msg]
+repos:
+  -   repo: https://github.com/realm/SwiftLint
+      rev: 0.59.1
+      hooks:
+        - id: swiftlint
+          entry: "swiftlint --fix"
+          stages: [pre-commit]
+          require_serial: true
+          files: "swift"
+
+        - id: swiftlint
+          entry: "swiftlint"
+          stages: [ pre-commit ]
+          require_serial: true
+          files: "swift"
+
+  -   repo: /Users/crowea/Developer/Swift-Gurus/conventional_commits
+      rev: c8132e296fc7fe849379f5ce91fa86c3a583db66
+      hooks:
+        - id: validate_branch
+          stages: [pre-commit]
+
+        - id: prepare_message
+          args: []
+          stages: [prepare-commit-msg]
+
+        - id: validate_message
+          stages: [commit-msg]

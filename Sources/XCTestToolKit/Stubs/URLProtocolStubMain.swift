@@ -1,12 +1,13 @@
 import Foundation
 
-public final class URLProtocolStubMain: URLProtocolStubBase {
+@available(macOS 13.0, *)
+public final class URLProtocolStubMain: URLProtocolStubBase, @unchecked Sendable {
     static var stubsStorage = URLProtocolStubActor()
-    static var requestObserver: (URLRequest) async -> Void = {_ in }
-    
-    public class override var requestDidFinishObserver: (URLRequest) async -> Void {
+    @Locked static var requestObserver: (URLRequest) -> Void = {_ in }
+
+    public class override var requestDidFinishObserver: (URLRequest) -> Void {
         get { requestObserver }
-        set { requestObserver = newValue }
+        set { _requestObserver.mutate { _ in newValue } }
     }
     public override class var storage: URLProtocolStubActor { stubsStorage }
 }
