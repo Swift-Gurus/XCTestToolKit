@@ -1,6 +1,5 @@
 import Testing
 
-
 public typealias AsyncClosure<T: Sendable> = (T) async -> Void
 
 /// A runner that performs a stress test by executing an asynchronous operation repeatedly
@@ -24,7 +23,7 @@ public struct AsyncStressTestRunner {
     let before: AsyncClosure<Confirmable>?
     let autoConfirm: Bool
     let name: String
-    
+
     /// Initializes a new `AsyncStressTestRunner`.
     ///
     /// - Parameters:
@@ -89,9 +88,9 @@ public struct AsyncStressTestRunner {
         self.before = before
         self.name = name
     }
-    
-    func perform<R>(operation: @escaping @Sendable (Confirmable) async throws -> R) async throws -> [R]{
-        try await asyncConfirmation { confirmation in
+
+    func perform<R>(operation: @escaping @Sendable (Confirmable) async throws -> R) async throws -> [R] {
+        try await asyncConfirmation(expectedCount: iterations, timeout: timeout) { confirmation in
             await before?(confirmation)
             return try await stressRunAsync(count: iterations, strategy: randomStrategy) {
                 let value = try await operation(confirmation)
@@ -103,7 +102,7 @@ public struct AsyncStressTestRunner {
         }
 
     }
-    
+
 }
 //
 ///// A convenient function for performing a stress test over an asynchronous operation.
@@ -141,7 +140,7 @@ public func asyncStress<R>(
     autoConfirm: Bool = true,
     before: AsyncClosure<Confirmable>? = nil,
     operation: @escaping @Sendable (Confirmable) async throws -> R
-) async throws -> [R]{
+) async throws -> [R] {
         try await AsyncStressTestRunner(
             name: name,
             iterations: iterations,

@@ -50,4 +50,14 @@ struct NetworkObserverTests {
         #expect(secRequest.count == stressTestCount)
         #expect(mainRequest.count == stressTestCount)
     }
+
+    @Test
+    func throws_error_when_no_calls_made() async throws {
+        networkMonitor.setObserveSecondaryRequests(stressTestCount)
+        try await asyncStress { _ in }
+        await #expect(throws: Error.self) {
+            _ = try await networkMonitor.allSecondaryRequestURLs
+
+        }
+    }
 }
