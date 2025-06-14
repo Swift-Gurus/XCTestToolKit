@@ -33,5 +33,4 @@ extension AsyncConfirmation {
     var completed: Bool {
         expectedCount <= actualCount.rawValue
     }
-
 }

@@ -81,6 +81,9 @@ public struct AsyncConfirmationTestRunner<R: Sendable> {
     public func perform(operation: @escaping ConfirmationOperation<R>) async throws -> R {
         let confirmation = AsyncConfirmation(expectedCount: expectedCount, name: name)
         let waiter = AsyncConfirmationsWaiter(duration: timeout, confirmations: [confirmation])
+        defer {
+            #expect(confirmation.expectedCount == confirmation.actualCount.rawValue, sourceLocation: sourceLocation)
+        }
         async let result = operation(confirmation)
         try await waiter.wait()
         return try await result

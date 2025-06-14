@@ -10,22 +10,23 @@ struct AsyncConfirmationsWaiter {
         try await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask {
                 try await Task.sleep(for: self.duration)
-                let firstUncompleted = self.confirmations.firstUncompleted
-                throw Timeout(confirmationName: firstUncompleted?.name ?? "Unknown",
-                              expectedCount: firstUncompleted?.expectedCount ?? 0,
-                              actualCount: firstUncompleted?.actualCount.rawValue ?? 0)
+                if confirmations.containsNoInverted {
+                    try throwTimeoutError()
+                }
+                return
             }
 
-            group.addTask {
-                try await self.poll()
+            if confirmations.containsNoInverted {
+                group.addTask {
+                    try await self.poll()
+                }
             }
 
             try await group.nextOrCancelAllOnError()
         }
     }
 
-    func throwOnTimeout() async throws {
-        try await Task.sleep(for: self.duration)
+    func throwTimeoutError() throws {
         let firstUncompleted = self.confirmations.firstUncompleted
         throw Timeout(confirmationName: firstUncompleted?.name ?? "Unknown",
                       expectedCount: firstUncompleted?.expectedCount ?? 0,
@@ -48,6 +49,10 @@ private extension Sequence where Element == AsyncConfirmation {
 
     var firstUncompleted: Element? {
         first(where: { !$0.completed })
+    }
+
+    var containsNoInverted: Bool {
+        allSatisfy { $0.expectedCount > 0}
     }
 }
 
